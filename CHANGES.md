@@ -21,15 +21,29 @@
    - Added detailed documentation throughout
    - Created requirements.txt for dependencies
 
-## How to Use
+## Setup and Usage
 
-1. Install dependencies:
+1. Create and activate a new conda environment:
    ```bash
+   # Create new environment with Python 3.9
+   conda create -n gas_classifier python=3.9
+   
+   # Activate the environment
+   conda activate gas_classifier
+   
+   # Install PyTorch with conda (recommended for better CUDA support)
+   conda install pytorch torchvision -c pytorch
+   
+   # Install remaining dependencies
    pip install -r requirements.txt
    ```
 
 2. Run training with the new transformer model:
    ```bash
+   # Make sure you're in the gas_classifier environment
+   conda activate gas_classifier
+   
+   # Run the training
    python run_transformer.py
    ```
 
@@ -78,3 +92,14 @@ python run.py
 ```
 
 This allows for easy comparison between the two approaches and provides a fallback option if needed.
+
+## Environment Management
+
+To deactivate the conda environment when you're done:
+```bash
+conda deactivate
+```
+
+To remove the environment if needed:
+```bash
+conda remove --name gas_classifier --all
