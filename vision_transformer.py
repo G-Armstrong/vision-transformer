@@ -191,7 +191,7 @@ class VisionTransformer(nn.Module):
         dropout (float): Dropout probability (default: 0.2)
     """
     def __init__(self,
-                 in_channels: int = 2,
+                 in_channels: int = 1,  # Only density channel
                  patch_size: int = 2,  # Reduced from 4 to capture finer details
                  emb_dim: int = 64,    # Increased from 32 for better feature representation
                  depth: int = 2,       # Increased from 1 to allow hierarchical feature learning

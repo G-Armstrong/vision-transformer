@@ -45,10 +45,10 @@ class HDF5Dataset(Dataset):
             initialization. If False, streams data from disk as needed. (default: True)
     
     Dataset Structure:
-        The HDF5 file is expected to contain:
-        - 'density': First channel of input data
-        - 'recording_date': Second channel of input data
-        - 'labels': Corresponding labels for each sample
+    The HDF5 files are expected to contain 28x28 images with two channels:
+    - density: First channel representing density measurements
+    - recording_date: Second channel containing experimental conditions, may indicate whether a measurement was taken with or without the new procedure
+    - labels: Binary classification targets
     """
     def __init__(self, path, load_into_memory=True):
         self.path = path
@@ -56,8 +56,8 @@ class HDF5Dataset(Dataset):
         self.load_into_memory = load_into_memory
         
         if load_into_memory:
-            # Load and stack both channels (density and recording_date) into memory
-            self.inputs = np.stack([self.data["density"], self.data["recording_date"]], axis=1)
+            # Load only the density channel
+            self.inputs = self.data["density"][:, np.newaxis]  # Add channel dimension
             self.labels = self.data["labels"][:]
 
     def __len__(self):
@@ -87,6 +87,6 @@ class HDF5Dataset(Dataset):
             # Return pre-loaded data
             return np.float32(self.inputs[idx]), np.float32(self.labels[idx])
         else:
-            # Load data from disk on-the-fly
-            x = np.stack([self.data["density"][idx], self.data["recording_date"][idx]], axis=1)
+            # Load only density data from disk on-the-fly
+            x = self.data["density"][idx][np.newaxis]  # Add channel dimension
             return np.float32(x), np.float32(self.data["labels"][idx])

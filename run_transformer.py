@@ -251,7 +251,7 @@ if __name__ == "__main__":
         patience = 15  # Increased from 10 to allow more exploration
         
         # Model architecture parameters (simplified)
-        input_dim = 2          # Number of input channels (density and recording_date)
+        input_dim = 1          # Number of input channels (density only)
         num_classes = 1        # Binary classification
         input_shape = 28       # Input image size (28x28)
         patch_size = 4         # Size of image patches
