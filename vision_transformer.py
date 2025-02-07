@@ -29,8 +29,9 @@ from einops import rearrange, repeat
 class PatchEmbedding(nn.Module):
     """Splits input image into patches and linearly embeds them.
     
-    For our 28x28 input images, we use 4x4 patches, resulting in 7x7=49 patches.
-    Each patch is then linearly projected to a reduced embedding dimension.
+    For our 28x28 input images, we use 2x2 patches, resulting in 14x14=196 patches.
+    This finer granularity helps preserve subtle patterns in gas behavior.
+    Each patch is then linearly projected to an increased embedding dimension.
     
     Args:
         in_channels (int): Number of input channels (default: 2 for density and recording_date)
@@ -168,15 +169,15 @@ class VisionTransformer(nn.Module):
     """Simplified Vision Transformer for gas state classification.
     
     This model processes 28x28 gas measurement images using a transformer architecture.
-    The architecture has been intentionally simplified to prevent overfitting:
-    - Reduced embedding dimension (32 instead of 64)
-    - Fewer attention heads (2 instead of 4)
-    - Single transformer block (instead of 3)
-    - Increased dropout (0.2 instead of 0.1)
+    The architecture has been optimized to capture subtle gas behavior differences:
+    - Finer-grained 2x2 patches (196 patches instead of 49) to preserve detailed patterns
+    - Increased embedding dimension (64 instead of 32) for richer feature representation
+    - Two transformer blocks for hierarchical feature learning
+    - Maintained dropout (0.2) for regularization
     
     Architecture Overview:
-    1. Patch Embedding: Split 28x28 input into 4x4 patches (49 patches total)
-    2. Single Transformer Block: Process patches using attention and MLP
+    1. Patch Embedding: Split 28x28 input into 2x2 patches (196 patches total)
+    2. Two Transformer Blocks: Process patches hierarchically using attention and MLP
     3. Classification Head: Convert final representations to binary prediction
     
     Args:
@@ -191,9 +192,9 @@ class VisionTransformer(nn.Module):
     """
     def __init__(self,
                  in_channels: int = 2,
-                 patch_size: int = 4,
-                 emb_dim: int = 32,
-                 depth: int = 1,
+                 patch_size: int = 2,  # Reduced from 4 to capture finer details
+                 emb_dim: int = 64,    # Increased from 32 for better feature representation
+                 depth: int = 2,       # Increased from 1 to allow hierarchical feature learning
                  num_heads: int = 2,
                  mlp_dim: int = 64,
                  num_classes: int = 1,
