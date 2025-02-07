@@ -121,9 +121,8 @@ def train_one_epoch(
                 acc = accuracy(outputs, labels)
                 running_acc += acc.item()
                 
-            # Calculate loss with label smoothing
-            smooth_labels = labels * (1 - smoothing_factor) + 0.5 * smoothing_factor
-            loss = F.binary_cross_entropy_with_logits(outputs, smooth_labels)
+            # Calculate MSE loss with sigmoid activation
+            loss = F.mse_loss(torch.sigmoid(outputs), labels)
             
             # Check for NaN loss
             if torch.isnan(loss):
@@ -183,9 +182,8 @@ def validate_one_epoch(
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
             
-            # Calculate metrics with label smoothing
-            smooth_labels = labels * (1 - smoothing_factor) + 0.5 * smoothing_factor
-            loss = F.binary_cross_entropy_with_logits(outputs, smooth_labels)
+            # Calculate metrics with MSE loss
+            loss = F.mse_loss(torch.sigmoid(outputs), labels)
             acc = accuracy(outputs, labels)
             
             running_loss += loss.item()
@@ -251,7 +249,6 @@ if __name__ == "__main__":
         batch_size = 32  # Reduced from 64 to help prevent overfitting
         learning_rate = 1e-4  # Reduced from 5e-4 for more stable training
         patience = 15  # Increased from 10 to allow more exploration
-        smoothing_factor = 0.1  # Label smoothing factor for BCE loss
         
         # Model architecture parameters (simplified)
         input_dim = 2          # Number of input channels (density and recording_date)
