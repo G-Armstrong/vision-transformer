@@ -121,8 +121,9 @@ def train_one_epoch(
                 acc = accuracy(outputs, labels)
                 running_acc += acc.item()
                 
-            # Calculate MSE loss with sigmoid activation
-            loss = F.mse_loss(torch.sigmoid(outputs), labels)
+            # Calculate BCE loss with label smoothing
+            smooth_labels = labels * (1 - smoothing_factor) + 0.5 * smoothing_factor
+            loss = F.binary_cross_entropy_with_logits(outputs, smooth_labels)
             
             # Check for NaN loss
             if torch.isnan(loss):
@@ -182,8 +183,9 @@ def validate_one_epoch(
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
             
-            # Calculate metrics with MSE loss
-            loss = F.mse_loss(torch.sigmoid(outputs), labels)
+            # Calculate metrics with BCE loss and label smoothing
+            smooth_labels = labels * (1 - smoothing_factor) + 0.5 * smoothing_factor
+            loss = F.binary_cross_entropy_with_logits(outputs, smooth_labels)
             acc = accuracy(outputs, labels)
             
             running_loss += loss.item()
@@ -247,7 +249,8 @@ if __name__ == "__main__":
         # Training hyperparameters
         epochs = 100
         batch_size = 32  # Reduced from 64 to help prevent overfitting
-        learning_rate = 1e-4  # Reduced from 5e-4 for more stable training
+        learning_rate = 1e-3  # Increased for better exploration
+        smoothing_factor = 0.1  # Label smoothing factor for BCE loss
         patience = 15  # Increased from 10 to allow more exploration
         
         # Model architecture parameters (simplified)
@@ -322,12 +325,11 @@ if __name__ == "__main__":
             weight_decay=weight_decay
         )
         
-        # Linear learning rate scheduler
-        scheduler = optim.lr_scheduler.LinearLR(
+        # Cosine learning rate scheduler
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(
             optimizer,
-            start_factor=1.0,
-            end_factor=0.1,
-            total_iters=len(train_loader)*epochs
+            T_max=len(train_loader)*epochs,
+            eta_min=learning_rate * 0.01  # Decay to 1% of initial learning rate
         )
         
         # Training loop with early stopping

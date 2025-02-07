@@ -57,7 +57,7 @@ class HDF5Dataset(Dataset):
         
         if load_into_memory:
             # Load only the density channel
-            self.inputs = self.data["density"][:, np.newaxis]  # Add channel dimension
+            self.inputs = np.expand_dims(self.data["density"][:], axis=1)  # Add channel dimension
             self.labels = self.data["labels"][:]
 
     def __len__(self):
@@ -88,5 +88,5 @@ class HDF5Dataset(Dataset):
             return np.float32(self.inputs[idx]), np.float32(self.labels[idx])
         else:
             # Load only density data from disk on-the-fly
-            x = self.data["density"][idx][np.newaxis]  # Add channel dimension
+            x = np.expand_dims(self.data["density"][idx], axis=0)  # Add channel dimension
             return np.float32(x), np.float32(self.data["labels"][idx])
