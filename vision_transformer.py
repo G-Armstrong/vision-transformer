@@ -42,6 +42,8 @@ class PatchEmbedding(nn.Module):
         self.patch_size = patch_size
         # Linear projection of flattened patches
         self.proj = nn.Conv2d(in_channels, emb_dim, kernel_size=patch_size, stride=patch_size)
+        # Add BatchNorm for regularization
+        self.bn = nn.BatchNorm2d(emb_dim)
         # Add positional embeddings to help model understand patch positions
         self.cls_token = nn.Parameter(torch.randn(1, 1, emb_dim))
         # +1 for cls token
@@ -59,6 +61,8 @@ class PatchEmbedding(nn.Module):
         """
         # Project patches: (batch, channels, h, w) -> (batch, emb_dim, h', w')
         x = self.proj(x)
+        # Apply batch normalization
+        x = self.bn(x)
         # Rearrange to sequence: (batch, emb_dim, h', w') -> (batch, n_patches, emb_dim)
         x = rearrange(x, 'b e h w -> b (h w) e')
         

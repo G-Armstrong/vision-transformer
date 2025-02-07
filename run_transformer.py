@@ -121,8 +121,9 @@ def train_one_epoch(
                 acc = accuracy(outputs, labels)
                 running_acc += acc.item()
                 
-            # Calculate loss and backpropagate
-            loss = F.binary_cross_entropy_with_logits(outputs, labels)
+            # Calculate loss with label smoothing
+            smooth_labels = labels * (1 - smoothing_factor) + 0.5 * smoothing_factor
+            loss = F.binary_cross_entropy_with_logits(outputs, smooth_labels)
             
             # Check for NaN loss
             if torch.isnan(loss):
@@ -182,8 +183,9 @@ def validate_one_epoch(
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
             
-            # Calculate metrics
-            loss = F.binary_cross_entropy_with_logits(outputs, labels)
+            # Calculate metrics with label smoothing
+            smooth_labels = labels * (1 - smoothing_factor) + 0.5 * smoothing_factor
+            loss = F.binary_cross_entropy_with_logits(outputs, smooth_labels)
             acc = accuracy(outputs, labels)
             
             running_loss += loss.item()
@@ -249,6 +251,7 @@ if __name__ == "__main__":
         batch_size = 32  # Reduced from 64 to help prevent overfitting
         learning_rate = 1e-4  # Reduced from 5e-4 for more stable training
         patience = 15  # Increased from 10 to allow more exploration
+        smoothing_factor = 0.1  # Label smoothing factor for BCE loss
         
         # Model architecture parameters (simplified)
         input_dim = 2          # Number of input channels (density and recording_date)
@@ -314,31 +317,21 @@ if __name__ == "__main__":
             dropout=dropout
         ).to(device)
         
-        # Optimizer setup with increased weight decay
-        optimizer = optim.AdamW(
+        # Optimizer setup with SGD and momentum
+        optimizer = optim.SGD(
             model.parameters(),
             lr=learning_rate,
+            momentum=0.9,
             weight_decay=weight_decay
         )
         
-        # Learning rate scheduler with warmup
-        def warmup_cosine_schedule(step):
-            """Cosine learning rate schedule with linear warmup.
-            
-            The schedule:
-            1. Linear warmup for warmup_steps steps
-            2. Cosine decay from peak to final_lr
-            
-            This helps stabilize early training and prevent overfitting later.
-            """
-            warmup_steps = 200  # Increased from 100 for more stable start
-            if step < warmup_steps:
-                return float(step) / float(max(1, warmup_steps))
-            else:
-                progress = float(step - warmup_steps) / float(max(1, epochs * len(train_loader) - warmup_steps))
-                return 0.5 * (1.0 + torch.cos(torch.tensor(progress * torch.pi)).item())
-        
-        scheduler = optim.lr_scheduler.LambdaLR(optimizer, warmup_cosine_schedule)
+        # Linear learning rate scheduler
+        scheduler = optim.lr_scheduler.LinearLR(
+            optimizer,
+            start_factor=1.0,
+            end_factor=0.1,
+            total_iters=len(train_loader)*epochs
+        )
         
         # Training loop with early stopping
         best_val_acc = 0.0
