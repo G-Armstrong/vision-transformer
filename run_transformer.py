@@ -1,14 +1,15 @@
 """
-run.py - Training Pipeline Orchestrator
+run_transformer.py - Training Pipeline Orchestrator for Vision Transformer
 
-This file serves as the main entry point and orchestrator for the deep learning pipeline.
-It ties together the model architecture and data loading components, handling the training
-process, validation, and test predictions.
+This file serves as an alternative training pipeline using the Vision Transformer architecture.
+It preserves the original CNN implementation in run.py while providing an improved training
+setup with the new model.
 
 Project Structure:
-- run.py (this file): Orchestrates the training process and ties everything together
-- vision_transformer.py: Provides the Vision Transformer model architecture
-- dataset.py: Handles data loading and preprocessing
+- run_transformer.py (this file): Training pipeline for Vision Transformer
+- vision_transformer.py: Vision Transformer model architecture
+- run.py: Original CNN training pipeline
+- dataset.py: Data loading and preprocessing
 
 Key Changes from Previous Version:
 1. Switched to Vision Transformer architecture for better pattern recognition
